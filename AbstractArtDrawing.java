@@ -26,10 +26,7 @@ public class AbstractArtDrawing {
 
         page.setColor(Color.RED); //set color for the circles
         for (int i = 0; i < 10; i++) { //loop to test all 10 lines
-            for (int j = 0; j < 10; j++) { //inner loop to compare it with all lines
-                if (i == j) { //no need to compare to itself
-                    continue;
-                }
+            for (int j = i + 1; j < 10; j++) { //inner loop to compare it with all lines
                 if (arrayOfLines[i].isIntersecting(arrayOfLines[j])) {
                     //will only draw circle if intersection exists
                     Point intersection = arrayOfLines[i].intersectionPointCalculation(arrayOfLines[j]);
