@@ -16,7 +16,7 @@ public class Ball {
     private Point center; //center point of the ball
     private int radius; //radius of the ball
     private java.awt.Color color; //color of the ball
-    private Velocity speed; //speed and direction of the ball
+    private Velocity speedAndDirection; //speed and direction of the ball
     private Frame ballLimits; //the balls movement limits
 
     /**
@@ -79,7 +79,7 @@ public class Ball {
      * @return the velocity of the ball.
      */
     public Velocity getVelocity() {
-        return speed;
+        return speedAndDirection;
     }
 
     /**
@@ -106,17 +106,17 @@ public class Ball {
      * @param v the velocity to be put into the ball.
      */
     public void setVelocity(Velocity v) {
-        speed = v;
+        speedAndDirection = v;
     }
 
     /**
-     * This method sets the velocity of the ball based on the angle and speed.
+     * This method sets the velocity of the ball based on the changes needed on the axis's.
      *
-     * @param angle the angle of the new velocity.
-     * @param givenSpeed the speed of the new velocity.
+     * @param dx the change.
+     * @param dy the speed of the new velocity.
      */
-    public void setVelocity(double angle, double givenSpeed) {
-        this.speed = new Velocity(angle, givenSpeed);
+    public void setVelocity(double dx, double dy) {
+        this.speedAndDirection = new Velocity(dx, dy);
     }
 
     /**
@@ -163,20 +163,20 @@ public class Ball {
         //if the ball is going out of the frame on the x axis change it's direction.
         if (center.getX() - radius < ballLimits.getLeftmostPointX()
                 && this.getVelocity().applyToPoint(center).getX() < center.getX()) {
-            speed = Velocity.fromAngleAndSpeed(speed.getAngle() * (-1), speed.getSpeed() * (-1));
+            speedAndDirection = new Velocity(speedAndDirection.getdx() * (-1), speedAndDirection.getdy());
         }
         if (ballLimits.getFrameWidth() + ballLimits.getLeftmostPointX() < center.getX() + radius
                 && this.getVelocity().applyToPoint(center).getX() > center.getX()) {
-            speed = Velocity.fromAngleAndSpeed(speed.getAngle() * (-1), speed.getSpeed() * (-1));
+            speedAndDirection = new Velocity(speedAndDirection.getdx() * (-1), speedAndDirection.getdy());
         }
         //if the ball is going out of the frame on the y axis change it's direction.
         if (ballLimits.getFrameHeight() + ballLimits.getLeftmostPointY() < center.getY() + radius
                 && this.getVelocity().applyToPoint(center).getY() > center.getY()) {
-            speed = Velocity.fromAngleAndSpeed(speed.getAngle() * (-1), speed.getSpeed());
+            speedAndDirection = new Velocity(speedAndDirection.getdx(), speedAndDirection.getdy() * (-1));
         }
         if (ballLimits.getLeftmostPointY() > center.getY() - radius
                && this.getVelocity().applyToPoint(center).getY() < center.getY()) {
-            speed = Velocity.fromAngleAndSpeed(speed.getAngle() * (-1), speed.getSpeed());
+            speedAndDirection = new Velocity(speedAndDirection.getdx(), speedAndDirection.getdy() * (-1));
         }
         //advance a step
         center = this.getVelocity().applyToPoint(center);

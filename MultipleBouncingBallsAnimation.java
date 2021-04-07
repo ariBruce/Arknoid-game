@@ -19,7 +19,14 @@ import java.awt.Color;
  */
 public class MultipleBouncingBallsAnimation {
 
-
+    /**
+     * This method draws the balls on the screen based on each one's
+     * location and velocity and as it does so it holds the ball within the limits
+     * of its rectangles.
+     * There is a infinite loop in order to guarantee and continue the movement of the ball.
+     *
+     * @param radiusArray is the starting point of the ball.
+     */
     public static void drawMultipleBallAnimation(int[] radiusArray) {
     GUI gui = new GUI("Ball box", 300, 300); //set drawing platform
     Sleeper sleeper = new Sleeper(); //set speed on screen variable
@@ -39,6 +46,16 @@ public class MultipleBouncingBallsAnimation {
         sleeper.sleepFor(50);  // wait for 50 milliseconds.
     }
     }
+    /**
+     * This method sorts the array of radius's by size
+     * and then in order gives each ball a color, center frame and velocity.
+     *
+     * @param radiusArray is the starting point of the ball.
+     * @param boardWidth is the width limit f0r the movement of the ball.
+     * @param boardHeight is the height limit f0r the movement of the ball.
+     * @param leftmostPoint is the upper left point of the balls limits.
+     * @return will return the new array of balls.
+     */
     public static Ball[] createArrayOfBalls(int[] radiusArray, int boardWidth,
                                             int boardHeight, Point leftmostPoint) {
         Random rand = new Random(); // create a random-number generator
@@ -69,29 +86,44 @@ public class MultipleBouncingBallsAnimation {
         return ballArray;
     }
 
+    /**
+     * This method gives each ball a velocity by giving it a random angle,
+     * it gives each ball speed according to the size of the ball.
+     *
+     * @param radiusArray is the starting point of the ball.
+     * @param ballArray is the width limit f0r the movement of the ball.
+     */
     public static void setTheVelocity(int[] radiusArray, Ball[] ballArray) {
+        Random rand = new Random(); // create a random-number generator
         int largeBallSize = 50;
         double largeBallSpeed = 1;
-        double largeBallAngle = 1;
-        double speedBonusForSmallestBall = radiusArray.length + 5;
-        Random rand = new Random(); // create a random-number generator
+        double ballAngle;
+        double speedBonusForSmallestBall = radiusArray.length + 5; //in order to make sure smallest ball is fastest
         for (int i = 0; i < radiusArray.length; i++) {
             if (radiusArray[i] >= largeBallSize) { //all large balls have the same velocity
-                ballArray[i].setVelocity(largeBallAngle, largeBallSpeed);
+                ballAngle = rand.nextInt(360); //any angle smaller then 360
+                ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, largeBallSpeed));
             } else if (i != 0 && radiusArray[i] == radiusArray[i - 1]) { //paste same speed for balls of the same size
-                ballArray[i].setVelocity(ballArray[i - 1].getVelocity());
-            } else { //set speed so that it gets increasingly slower
-                if (i != 0) { //make sure as the balls get bigger the speed gets smaller
-                    ballArray[i].setVelocity((double) (radiusArray.length * 2) / i,
-                            (double) (radiusArray.length * 2) / i);
+                ballAngle = rand.nextInt(360); //any angle smaller then 360
+                ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, ballArray[i - 1].getVelocity().getdy()));
+            } else if (i != 0) { //set speed so that ist gets increasingly slower
+                    //make sure as the balls get bigger the speed gets smaller
+                    ballAngle = rand.nextInt(360); //any angle smaller then 360
+                    ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle,
+                            (double) (radiusArray.length * 2) / i));
                 } else { //make sure smallest ball is fastest
-                    ballArray[i].setVelocity((radiusArray.length) + speedBonusForSmallestBall,
-                            (radiusArray.length) + speedBonusForSmallestBall);
+                    ballAngle = rand.nextInt(360); //any angle smaller then 360
+                    ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle,
+                            (radiusArray.length) + speedBonusForSmallestBall));
                 }
             }
         }
-    }
 
+    /**
+     * This method transfers all string form radius's to doubles and sends them on to be drawn as circles.
+     *
+     * @param args parameters received from command line, in this case array of radius's
+     */
     public static void main(String[] args) {
         //pass string variables to double array
         int[] radiusArray = new int[args.length];

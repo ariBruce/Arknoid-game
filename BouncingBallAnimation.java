@@ -21,16 +21,16 @@ public class BouncingBallAnimation {
      * There is a infinite loop in order to guarantee and continue the movement of the ball.
      *
      * @param start is the starting point of the ball.
-     * @param angle is the original velocity.
-     * @param speed is the radius of the circle that is received.
+     * @param dx is the original velocity.
+     * @param dy is the radius of the circle that is received.
      */
-    private static void drawAnimation(Point start, double angle, double speed) {
+    private static void drawAnimation(Point start, double dx, double dy) {
         GUI gui = new GUI("Ball box", 300, 300); //set drawing platform
         Sleeper sleeper = new Sleeper(); //set speed on screen variable
         Ball ball = new Ball(start.getX(), start.getY(), 30, java.awt.Color.BLACK);
         DrawSurface d = gui.getDrawSurface(); //set the base in order to draw
         ball.setBallLimits(d.getHeight(), d.getWidth(), 0, 0); //set ball limits
-        ball.setVelocity(angle, speed); //set correct velocity
+        ball.setVelocity(dx, dy); //set correct velocity
         while (true) { //infinite loop to continue the bounce of the ball
             ball.moveOneStep(); //adjust the balls center
             d = gui.getDrawSurface();
