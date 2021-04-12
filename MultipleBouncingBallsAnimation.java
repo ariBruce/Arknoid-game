@@ -19,8 +19,9 @@ import java.awt.Color;
  */
 public class MultipleBouncingBallsAnimation {
 
-    private static final double LARGEBALLSIZE = 50;
-    private static final double LARGEBALLSPEED = 1;
+    private static final double LARGEBALLSIZE = 50; //From this size a ball is considered large
+    private static final double LARGEBALLSPEED = 1; //large balls speed
+    private static final double NUMBERFORSPEED = 12; //base number for setting speed.
     /**
      * This method draws the balls on the screen based on each one's
      * location and velocity and as it does so it holds the ball within the limits
@@ -90,6 +91,18 @@ public class MultipleBouncingBallsAnimation {
             Point centerOfBall = new Point(ballStartX, ballStartY);
             centerOfBall = InputChecks.withinLimitsCheck(centerOfBall, leftmostPoint,
                     radiusArray[i], boardWidth, boardHeight);
+            if (i != 0) { //change starting location of the balls in order to prevent constant overlap
+                if (centerOfBall.equals(ballArray[i - 1].getCenter())) {
+                    centerOfBall = new Point(centerOfBall.getX() + boardWidth, centerOfBall.getY() + boardWidth);
+                    centerOfBall = InputChecks.withinLimitsCheck(centerOfBall, leftmostPoint,
+                            radiusArray[i], boardWidth, boardHeight);
+                    if (centerOfBall.equals(ballArray[i - 1].getCenter())) { //if still overlapping
+                        ballArray[i - 1] = new Ball(ballArray[i - 1].getCenter(),
+                                ballArray[i - 1].getSize() - 1, ballArray[i - 1].getColor());
+                        ballArray[i - 1].setBallLimits(boardHeight, boardWidth, leftmostPoint);
+                    }
+                }
+            }
             ballArray[i] = new Ball(centerOfBall, radiusArray[i], randomColor);
             ballArray[i].setBallLimits(boardHeight, boardWidth, leftmostPoint);
         }
@@ -107,23 +120,23 @@ public class MultipleBouncingBallsAnimation {
     public static void setTheVelocity(int[] radiusArray, Ball[] ballArray) {
         Random rand = new Random(); // create a random-number generator
         double ballAngle;
-        double speedBonusForSmallestBall = radiusArray.length + 5; //in order to make sure smallest ball is fastest
+        double speedBonusForSmallestBall = 5; //in order to make sure smallest ball is fastest
         for (int i = 0; i < radiusArray.length; i++) {
             if (radiusArray[i] >= LARGEBALLSIZE) { //all large balls have the same velocity
                 ballAngle = rand.nextInt(360); //any angle smaller then 360
                 ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, LARGEBALLSPEED));
             } else if (i != 0 && radiusArray[i] == radiusArray[i - 1]) { //paste same speed for balls of the same size
-                ballAngle = rand.nextInt(360); //any angle smaller then 360
-                ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, ballArray[i - 1].getVelocity().getdy()));
+                //the same size will be received here and there is no more need to check because the array is in order
+                ballArray[i].setVelocity(ballArray[i - 1].getVelocity().getdx(),
+                        ballArray[i - 1].getVelocity().getdy());
             } else if (i != 0) { //set speed so that ist gets increasingly slower
                     //make sure as the balls get bigger the speed gets smaller
                     ballAngle = rand.nextInt(360); //any angle smaller then 360
-                    ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle,
-                            (double) (radiusArray.length * 2) / i));
+                    ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, NUMBERFORSPEED / (1 + 0.1 * i)));
                 } else { //make sure smallest ball is fastest
                     ballAngle = rand.nextInt(360); //any angle smaller then 360
                     ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle,
-                            (radiusArray.length) + speedBonusForSmallestBall));
+                            NUMBERFORSPEED + speedBonusForSmallestBall));
                 }
             }
         }

@@ -46,7 +46,7 @@ public class MultipleFramesBouncingBallsAnimation {
             screen.setColor(Color.YELLOW); //set color for the board
             screen.fillRectangle(450, 450, 150, 150);
             for (int i = ballArray2.length - 1; i >= 0; i--) {
-                ballArray2[i].drawOn(screen); //draw the ball in the appropriate location
+               ballArray2[i].drawOn(screen); //draw the ball in the appropriate location
             }
             gui.show(screen); //present first screen
             sleeper.sleepFor(50);  // wait for 50 milliseconds.
@@ -73,7 +73,7 @@ public class MultipleFramesBouncingBallsAnimation {
         if (color == Color.YELLOW) {
             Point edgePoint = new Point(450, 450);
             for (int i = 0; i < arrayHalf.length; i++) {
-                arrayHalf[i] = (int) InputChecks.radiusCheck(radiusArray[i], 150, 150);
+                arrayHalf[i] = (int) InputChecks.radiusCheck(arrayHalf[i], 150, 150);
                 if (i != 0 && arrayHalf[i] == arrayHalf[i - 1] && arrayHalf[i] == 75) {
                     arrayHalf[i - 1] = arrayHalf[i - 1] - 5; //make sure no max sized balls block each other
                 }
@@ -83,7 +83,7 @@ public class MultipleFramesBouncingBallsAnimation {
         } else {
             Point edgePoint = new Point(50, 50);
             for (int i = 0; i < arrayHalf.length; i++) {
-                arrayHalf[i] = (int) InputChecks.radiusCheck(radiusArray[i], 450, 450);
+                arrayHalf[i] = (int) InputChecks.radiusCheck(arrayHalf[i], 450, 450);
                 if (i != 0 && arrayHalf[i] == arrayHalf[i - 1] && arrayHalf[i] == 225) {
                     arrayHalf[i - 1] = arrayHalf[i - 1] - 5; //make sure no max sized balls block each other
                 }
