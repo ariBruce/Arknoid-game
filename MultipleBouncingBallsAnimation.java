@@ -19,6 +19,8 @@ import java.awt.Color;
  */
 public class MultipleBouncingBallsAnimation {
 
+    private static final double LARGEBALLSIZE = 50;
+    private static final double LARGEBALLSPEED = 1;
     /**
      * This method draws the balls on the screen based on each one's
      * location and velocity and as it does so it holds the ball within the limits
@@ -28,22 +30,28 @@ public class MultipleBouncingBallsAnimation {
      * @param radiusArray is the starting point of the ball.
      */
     public static void drawMultipleBallAnimation(int[] radiusArray) {
-    GUI gui = new GUI("Ball box", 300, 300); //set drawing platform
+    GUI gui = new GUI("Ball box", 450, 450); //set drawing platform
     Sleeper sleeper = new Sleeper(); //set speed on screen variable
     DrawSurface d = gui.getDrawSurface(); //set the base in order to draw
     Point leftmostPointOfFrame = new Point(0, 0);
+    for (int i = 0; i < radiusArray.length; i++) {
+        radiusArray[i] = (int) InputChecks.radiusCheck(radiusArray[i], d.getWidth(), d.getHeight());
+    }
     //create array of balls from array of radius's
     Ball[] ballArray = createArrayOfBalls(radiusArray, d.getWidth(), d.getHeight(), leftmostPointOfFrame);
         while (true) { //infinite loop to continue the bounce of the ball's
-        for (int i = 0; i < radiusArray.length; i++) {
+        for (int i = ballArray.length - 1; i >= 0; i--) {
             ballArray[i].moveOneStep(); //adjust the balls center
         }
         d = gui.getDrawSurface();
-        for (int i = 0; i < radiusArray.length; i++) {
+        for (int i = ballArray.length - 1; i >= 0; i--) {
             ballArray[i].drawOn(d); //draw the ball in the appropriate location
         }
         gui.show(d); //present picture
         sleeper.sleepFor(50);  // wait for 50 milliseconds.
+            if (gui.getKeyboardSensor().isPressed("space")) {
+                return;
+            }
     }
     }
     /**
@@ -72,14 +80,17 @@ public class MultipleBouncingBallsAnimation {
             }
         }
         for (int i = 0; i < radiusArray.length; i++) { //fill ball array
-            int ballStartX = rand.nextInt(boardWidth) + (int) leftmostPoint.getX(); // get integer in correct range
-            int ballStartY = rand.nextInt(boardHeight) + (int) leftmostPoint.getY(); // get integer in correct range
+            int ballStartX = rand.nextInt(boardWidth); // get integer in correct range
+            int ballStartY = rand.nextInt(boardHeight); // get integer in correct range
             float redBase = rand.nextFloat(); //create red base for color
             float greenBase = rand.nextFloat(); //create green base for color
             float blueBase = rand.nextFloat(); //create blue base for color
             Color randomColor = new Color(redBase, greenBase, blueBase); //mix all bases to receive a color
             //insert new ball into array of balls
-            ballArray[i] = new Ball(ballStartX, ballStartY, radiusArray[i], randomColor);
+            Point centerOfBall = new Point(ballStartX, ballStartY);
+            centerOfBall = InputChecks.withinLimitsCheck(centerOfBall, leftmostPoint,
+                    radiusArray[i], boardWidth, boardHeight);
+            ballArray[i] = new Ball(centerOfBall, radiusArray[i], randomColor);
             ballArray[i].setBallLimits(boardHeight, boardWidth, leftmostPoint);
         }
         setTheVelocity(radiusArray, ballArray);
@@ -91,18 +102,16 @@ public class MultipleBouncingBallsAnimation {
      * it gives each ball speed according to the size of the ball.
      *
      * @param radiusArray is the starting point of the ball.
-     * @param ballArray is the width limit f0r the movement of the ball.
+     * @param ballArray is the width limit for the movement of the ball.
      */
     public static void setTheVelocity(int[] radiusArray, Ball[] ballArray) {
         Random rand = new Random(); // create a random-number generator
-        int largeBallSize = 50;
-        double largeBallSpeed = 1;
         double ballAngle;
         double speedBonusForSmallestBall = radiusArray.length + 5; //in order to make sure smallest ball is fastest
         for (int i = 0; i < radiusArray.length; i++) {
-            if (radiusArray[i] >= largeBallSize) { //all large balls have the same velocity
+            if (radiusArray[i] >= LARGEBALLSIZE) { //all large balls have the same velocity
                 ballAngle = rand.nextInt(360); //any angle smaller then 360
-                ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, largeBallSpeed));
+                ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, LARGEBALLSPEED));
             } else if (i != 0 && radiusArray[i] == radiusArray[i - 1]) { //paste same speed for balls of the same size
                 ballAngle = rand.nextInt(360); //any angle smaller then 360
                 ballArray[i].setVelocity(Velocity.fromAngleAndSpeed(ballAngle, ballArray[i - 1].getVelocity().getdy()));
@@ -125,13 +134,20 @@ public class MultipleBouncingBallsAnimation {
      * @param args parameters received from command line, in this case array of radius's
      */
     public static void main(String[] args) {
-        //pass string variables to double array
-        int[] radiusArray = new int[args.length];
-        for (int i = 0; i < args.length; i++) {
-            radiusArray[i] = Integer.parseInt(args[i]);
+        if (args.length == 0) {
+            System.out.println("Invalid input, must input a valid number of radius's");
+        } else if (!InputChecks.checkIfInt(args)) {
+        System.out.println("Invalid input, input is not an int");
+    } else {
+            //pass string variables to double array
+            int[] radiusArray = new int[args.length];
+            for (int i = 0; i < args.length; i++) {
+                radiusArray[i] = Integer.parseInt(args[i]);
+                radiusArray[i] = (int) InputChecks.radiusSizeCheck(radiusArray[i]);
+            }
+            //draw the bouncing balls on screen
+            drawMultipleBallAnimation(radiusArray);
         }
-        //draw the bouncing balls on screen
-        drawMultipleBallAnimation(radiusArray);
     }
 }
 

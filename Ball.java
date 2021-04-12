@@ -63,7 +63,14 @@ public class Ball {
     public int getY() {
         return (int) center.getY();
     }
-
+    /**
+     * This method is the accessor to the center point of the circle.
+     *
+     * @return the radius of the circle.
+     */
+    public Point getCenter() {
+        return center;
+    }
     /**
      * This method is the accessor to the radius of the circle.
      *

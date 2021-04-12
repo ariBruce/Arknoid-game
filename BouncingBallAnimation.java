@@ -25,10 +25,12 @@ public class BouncingBallAnimation {
      * @param dy is the radius of the circle that is received.
      */
     private static void drawAnimation(Point start, double dx, double dy) {
-        GUI gui = new GUI("Ball box", 300, 300); //set drawing platform
+        GUI gui = new GUI("Ball box", 200, 200); //set drawing platform
         Sleeper sleeper = new Sleeper(); //set speed on screen variable
-        Ball ball = new Ball(start.getX(), start.getY(), 30, java.awt.Color.BLACK);
         DrawSurface d = gui.getDrawSurface(); //set the base in order to draw
+        Point edgeOfScreen = new Point(0, 0); //edge point of limit
+        Point correctPoint = InputChecks.withinLimitsCheck(start, edgeOfScreen, 30, d.getWidth(), d.getHeight());
+        Ball ball = new Ball(correctPoint.getX(), correctPoint.getY(), 30, java.awt.Color.BLACK);
         ball.setBallLimits(d.getHeight(), d.getWidth(), 0, 0); //set ball limits
         ball.setVelocity(dx, dy); //set correct velocity
         while (true) { //infinite loop to continue the bounce of the ball
@@ -37,6 +39,9 @@ public class BouncingBallAnimation {
             ball.drawOn(d); //draw the ball in the appropriate location
             gui.show(d); //present picture
             sleeper.sleepFor(50);  // wait for 50 milliseconds.
+            if (gui.getKeyboardSensor().isPressed("space")) {
+                return;
+            }
         }
     }
     /**
@@ -47,16 +52,19 @@ public class BouncingBallAnimation {
      * @param args original java input for ball location and velocity.
      */
     public static void main(String[] args) {
-        if (args.length < 4) { //validate input
-            System.out.println("Invalid input");
+        if (args.length != 4) { //validate input
+            System.out.println("Invalid input, incorrect amount of numbers");
+        } else if (!InputChecks.checkIfInt(args)) { //check if all inputs are numbers
+            System.out.println("Invalid input, input is not an int");
+        }  else {
+            //pass string variables to double array
+            double[] passedArguments = new double[4];
+            for (int i = 0; i < 4; i++) {
+                passedArguments[i] = Double.parseDouble(args[i]);
+            }
+            //set new point and call animation method
+            Point start = new Point(passedArguments[0], passedArguments[1]);
+            drawAnimation(start, passedArguments[2], passedArguments[3]);
         }
-        //pass string variables to double array
-        double[] passedArguments = new double[4];
-        for (int i = 0; i < 4; i++) {
-            passedArguments[i] = Double.parseDouble(args[i]);
-        }
-        //set new point and call animation method
-        Point start = new Point(passedArguments[0], passedArguments[1]);
-        drawAnimation(start, passedArguments[2], passedArguments[3]);
     }
 }
