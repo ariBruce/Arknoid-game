@@ -3,7 +3,7 @@ import biuoop.DrawSurface;
 
 /**
  * @author Aryeh Bruce
- * date - 01.04.2021
+ * date - 22.04.2021
  * <p>
  * This class represents a ball, it has a center point, radius, color velocity and frame.
  * the class has the appropriate getters and a methoud in order to draw the ball,
@@ -11,13 +11,14 @@ import biuoop.DrawSurface;
  * </p>
  */
 
-public class Ball {
+public class Ball implements Sprite {
 
     private Point center; //center point of the ball
     private int radius; //radius of the ball
     private java.awt.Color color; //color of the ball
     private Velocity speedAndDirection; //speed and direction of the ball
-    private Frame ballLimits; //the balls movement limits
+    private GameEnvironment ballLimits; //the balls movement limits
+    private  CollisionInfo previousCollisionInfo; // the balls last collision
 
     /**
      * This method represents the first of two constructors and will receive the circle variables.
@@ -63,6 +64,7 @@ public class Ball {
     public int getY() {
         return (int) center.getY();
     }
+
     /**
      * This method is the accessor to the center point of the circle.
      *
@@ -71,6 +73,7 @@ public class Ball {
     public Point getCenter() {
         return center;
     }
+
     /**
      * This method is the accessor to the radius of the circle.
      *
@@ -103,7 +106,7 @@ public class Ball {
      *
      * @return the frame of the limits of the ball.
      */
-    public Frame getBallLimits() {
+    public GameEnvironment getGameEnvironment() {
         return ballLimits;
     }
 
@@ -129,25 +132,11 @@ public class Ball {
     /**
      * This method sets the limits of movement for the ball.
      *
-     * @param height maximum height potential of the ball.
-     * @param width maximum horizontal potential of the ball.
-     * @param topLeftCorner top left corner of the movement frame of the ball.
+     * @param gameEnvironment the rectangle's in the game that will be collided with
      */
-    public void setBallLimits(double height, double width, Point topLeftCorner) {
-        ballLimits = new Frame(height, width, topLeftCorner);
+    public void setGameEnvironment(GameEnvironment gameEnvironment) {
+        ballLimits = gameEnvironment;
     }
-    /**
-     * This method sets the limits of movement for the ball.
-     *
-     * @param height maximum height potential of the ball.
-     * @param width maximum horizontal potential of the ball.
-     * @param topLeftCornerX X point of the top left corner of the movement frame of the ball.
-     * @param topLeftCornerY Y point of the top left corner of the movement frame of the ball.
-     */
-    public void setBallLimits(double height, double width, double topLeftCornerX, double topLeftCornerY) {
-        ballLimits = new Frame(height, width, topLeftCornerX, topLeftCornerY);
-    }
-
     /**
      * This method draws the ball on the given DrawSurface.
      *
@@ -162,32 +151,43 @@ public class Ball {
      * This method fix's the location of the ball and places it one step
      * in the direction and at the speed of the velocity.
      * The method does this by advancing the location of the ball by its velocity,
-     * and in the process changes the balls velocity as it reaches its limits.
+     * and in the process calls other methods in order to
+     * adjust the velocity when needed and find proper collision points.
      */
     public void moveOneStep() {
-        //the checks are always done by checking if the ball is out of the frame,
-        //and then if it continues in that direction.
-        //if the ball is going out of the frame on the x axis change it's direction.
-        if (center.getX() - radius < ballLimits.getLeftmostPointX()
-                && this.getVelocity().applyToPoint(center).getX() < center.getX()) {
-            speedAndDirection = new Velocity(speedAndDirection.getdx() * (-1), speedAndDirection.getdy());
+        Line fullTrajectory = new Line(center.getX(), center.getY(),
+                speedAndDirection.applyToPoint(center).getX(), speedAndDirection.applyToPoint(center).getY());
+        //check for collision object
+        CollisionInfo aboutToHit = ballLimits.getClosestCollision(fullTrajectory);
+        if (aboutToHit != null) {
+            //avoid getting stuck if the middle lands exactly on a line
+            if (previousCollisionInfo != null
+                    && previousCollisionInfo.collisionPoint().equals(aboutToHit.collisionPoint())) {
+                center = getVelocity().applyToOneAbovePoint(center);
+                return;
+            }
+            speedAndDirection = aboutToHit.collisionObject().hit(aboutToHit.collisionPoint(), speedAndDirection);
+            previousCollisionInfo = aboutToHit;
+            //in order not to bounce into another block
+            return;
         }
-        if (ballLimits.getFrameWidth() + ballLimits.getLeftmostPointX() < center.getX() + radius
-                && this.getVelocity().applyToPoint(center).getX() > center.getX()) {
-            speedAndDirection = new Velocity(speedAndDirection.getdx() * (-1), speedAndDirection.getdy());
-        }
-        //if the ball is going out of the frame on the y axis change it's direction.
-        if (ballLimits.getFrameHeight() + ballLimits.getLeftmostPointY() < center.getY() + radius
-                && this.getVelocity().applyToPoint(center).getY() > center.getY()) {
-            speedAndDirection = new Velocity(speedAndDirection.getdx(), speedAndDirection.getdy() * (-1));
-        }
-        if (ballLimits.getLeftmostPointY() > center.getY() - radius
-               && this.getVelocity().applyToPoint(center).getY() < center.getY()) {
-            speedAndDirection = new Velocity(speedAndDirection.getdx(), speedAndDirection.getdy() * (-1));
-        }
-        //advance a step
-        center = this.getVelocity().applyToPoint(center);
+        center = getVelocity().applyToPoint(center);
+    }
+
+    /**
+     * This method will notify the ball to continue on its course during the next frame.
+     */
+    public void timePassed() {
+        moveOneStep();
+    }
+
+    /**
+     * This method will insert the ball into the game.
+     *
+     * @param game the holder of the needed gui.
+     */
+    public void addToGame(Game game) {
+        game.addSprite(this);
     }
 }
-
 

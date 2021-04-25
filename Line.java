@@ -1,4 +1,7 @@
 //Aryeh bruce 209313907
+
+import java.util.List;
+
 /**
  * @author Aryeh Bruce
  * date - 01.04.2021
@@ -11,6 +14,7 @@
  */
 public class Line {
     //Both points that the line is located in between
+    private static final double EPSILON = 0.000001; //small numbers to be ignored
     private Point start;
     private Point end;
 
@@ -53,7 +57,7 @@ public class Line {
      * @return the line's angle.
      */
     public double lineAngle() {
-        if (start.getX() - end.getX() == 0) {
+        if (Math.abs(start.getX() - end.getX()) < EPSILON) {
             return 0;
         } else {
             return (start.getY() - end.getY()) / (start.getX() - end.getX());
@@ -105,7 +109,7 @@ public class Line {
             if (equals(other)) {
                 return true;
             }
-            if (lineAngle() == other.lineAngle()) {
+            if (Math.abs(lineAngle() - other.lineAngle()) < EPSILON) {
                 //in case one line is lying on the other
                   if ((Math.max(start.getX(), end.getX()) >= Math.min(other.start.getX(), other.end.getX()))
                           && (Math.min(start.getX(), end.getX()) <= Math.max(other.start.getX(), other.end.getX()))
@@ -113,13 +117,15 @@ public class Line {
                           && (Math.min(start.getY(), end.getY()) <= Math.max(other.start.getY(), other.end.getY()))) {
                       return true;
                   }
-                //find n in y = m*x + n equation for this line
-                double n = start.getY() - lineAngle() * start.getX();
-                //check if line edges are on one of the lines do this by seeing if line equation are the same
-                //and if so weather or not
-                return ((other.start.getY() == other.start.getX() * lineAngle() + n)
-                        && (Math.max(start.getX(), end.getX()) >= Math.min(other.start.getX(), other.end.getX()))
-                        && (Math.min(start.getX(), end.getX()) <= Math.max(other.start.getX(), other.end.getX())));
+                  //if line is a dot and the angles are the same
+                    //find n in y = m*x + n equation for this line
+                double n;
+                    n = start.getY() - lineAngle() * start.getX();
+                    //check if line edges are on one of the lines do this by seeing if line equation are the same
+                    //and if so weather or not
+                    return (Math.abs(other.start.getY() - other.start.getX() * lineAngle() + n) < EPSILON)
+                            && (Math.max(start.getX(), end.getX()) >= Math.min(other.start.getX(), other.end.getX()))
+                            && (Math.min(start.getX(), end.getX()) <= Math.max(other.start.getX(), other.end.getX()));
             } else {
                 //potential Point of intersect is calculated if point is within range of the line
                 // then the segments must intersect, return true or false based on that check.
@@ -128,7 +134,7 @@ public class Line {
                     //if a line is a dot its the only potential point
                     //therefore see if it is within the function
                     n = other.start.getY() - other.lineAngle() * other.start.getX();
-                    if (end.getY() == other.lineAngle() * end.getX() + n) {
+                    if (Math.abs(end.getY() - other.lineAngle() * end.getX() + n) < EPSILON) {
                         return (!(end.getX() > Math.max(start.getX(), end.getX()))
                                 && !(end.getX() < Math.min(start.getX(), end.getX()))
                                 && !(end.getY() > Math.max(other.start.getY(), other.end.getY()))
@@ -139,7 +145,7 @@ public class Line {
                 } else if (other.end.equals(other.start)) {
                     //if a line is a dot its the only potential point
                     n = start.getY() - lineAngle() * start.getX();
-                    if (other.end.getY() == lineAngle() * other.end.getX() + n) {
+                    if (Math.abs(other.end.getY() - lineAngle() * other.end.getX() + n) < EPSILON) {
                         return (!(other.end.getX() > Math.max(start.getX(), end.getX()))
                                 && !(other.end.getX() < Math.min(start.getX(), end.getX()))
                                 && !(other.end.getY() > Math.max(other.start.getY(), other.end.getY()))
@@ -149,11 +155,15 @@ public class Line {
                     }
                 } else {
                     Point potentialPoint = potentialIntersectionPointCalculation(other);
-                    //check if potential intersection point is within lines range
-                    return (!(potentialPoint.getX() > Math.max(start.getX(), end.getX()))
-                            && !(potentialPoint.getX() < Math.min(start.getX(), end.getX()))
-                            && !(potentialPoint.getX() > Math.max(other.start.getX(), other.end.getX()))
-                            && !(potentialPoint.getX() < Math.min(other.start.getX(), other.end.getX())));
+                    //check if potential intersection point is within lines ranges
+                    return ((potentialPoint.getX() <= Math.max(start.getX(), end.getX()))
+                            && (potentialPoint.getX() >= Math.min(start.getX(), end.getX()))
+                            && (potentialPoint.getY() <= Math.max(start.getY(), end.getY()))
+                            && (potentialPoint.getY() >= Math.min(start.getY(), end.getY()))
+                            && (potentialPoint.getX() <= Math.max(other.start.getX(), other.end.getX()))
+                            && (potentialPoint.getX() >= Math.min(other.start.getX(), other.end.getX()))
+                            && (potentialPoint.getY() <= Math.max(other.start.getY(), other.end.getY()))
+                            && (potentialPoint.getY() >= Math.min(other.start.getY(), other.end.getY())));
                 }
             }
         }
@@ -186,7 +196,7 @@ public class Line {
      * @return the line's intersection point.
      */
     public Point intersectionPointCalculation(Line other) {
-        if (length() == 0 || other.length() == 0) { //check if its a dot on a line
+        if (Math.abs(length()) < EPSILON || Math.abs(other.length()) < EPSILON) { //check if its a dot on a line
             if (dotLyingOnLine(other) != null) {
                 return dotLyingOnLine(other);
             }
@@ -194,7 +204,8 @@ public class Line {
         if (moreThenOneIntersect(other)) { //if there are several intersection points
             return null;
         }
-        if (lineAngle() - other.lineAngle() == 0) { //if the angle is the same and edges collide return edges
+        //if the angle is the same and edges collide return edges
+        if (Math.abs(lineAngle() - other.lineAngle()) < EPSILON) {
             if (sameAngleEdgeCheck(other) != null) {
                 return sameAngleEdgeCheck(other);
             }
@@ -235,7 +246,7 @@ public class Line {
         } else if (Math.min(other.start().getY(), other.end.getY()) <= start.getY()
                 && Math.max(other.start().getY(), other.end.getY()) >= start.getY()) { //if a dot is on the line
             return start;
-        } else if (other.length() == 0) {
+        } else if (Math.abs(other.length()) < EPSILON) {
             if (Math.min(start().getY(), end.getY()) <= other.start.getY()
                     && Math.max(start().getY(), end.getY()) >= other.start.getY()) { //if a dot is on the line
                 return other.start;
@@ -253,28 +264,31 @@ public class Line {
      * @return boolean value based on if the lines intersect at many points or not.
      */
     public boolean moreThenOneIntersect(Line other) {
-        if (Math.max(other.start.getX(), other.end.getX()) > 0
+        if ((Math.max(other.start.getX(), other.end.getX()) > 0
             || Math.max(start.getX(), end.getX()) > 0
             || Math.max(other.start.getY(), other.end.getY()) > 0
-            || Math.min(start().getY(), end.getY()) > 0) { //if there is a positive side to a line
+            || Math.min(start().getY(), end.getY()) > 0)
+            && lineAngle() != 0) { //if there is a positive side to a line
             if (Math.min(start().getX(), end.getX()) > Math.max(other.start.getX(), other.end.getX())
-                    && lineAngle() == other.lineAngle()
-                    && lineAngle() != 0) { //if lines intersect at more then one point
+                    && Math.abs(lineAngle() - other.lineAngle()) < EPSILON) {
+                //if lines intersect at more then one point
                 //Will not work on y axis if angle is zero
                 return true;
             } else if (Math.min(start().getY(), end.getY()) < Math.max(other.start.getY(), other.end.getY())
                     && Math.max(start().getY(), end.getY()) > Math.min(other.start.getY(), other.end.getY())
-                    && lineAngle() == other.lineAngle()) { //if lines intersect at more then one point
+                    && Math.abs(lineAngle() - other.lineAngle()) < EPSILON) {
+                //if lines intersect at more then one point
                 //will check the y axis
                 return true;
             } else if (Math.min(other.start().getX(), other.end.getX()) > Math.max(start.getX(), end.getX())
-                    && lineAngle() == other.lineAngle()
-                    && lineAngle() != 0) { //if lines intersect at more then one point
+                    && Math.abs(lineAngle() - other.lineAngle()) < EPSILON) {
+                //if lines intersect at more then one point
                 //Will not work on y axis if angle is zero
                 return true;
             } else if (Math.min(other.start().getY(), other.end.getY()) > Math.max(start.getY(), end.getY())
                     && Math.max(other.start().getY(), other.end.getY()) > Math.min(start.getY(), end.getY())
-                    && lineAngle() == other.lineAngle()) { //if lines intersect at more then one point
+                    && Math.abs(lineAngle() - other.lineAngle()) < EPSILON) {
+                //if lines intersect at more then one point
                 //will check the y axis
                 return true;
             }
@@ -285,7 +299,8 @@ public class Line {
                 //Will not work on y axis if angle is zero
                 return true;
             } else if (Math.min(start().getY(), end.getY()) < Math.max(other.start.getY(), other.end.getY())
-                    && lineAngle() == other.lineAngle()) { //if lines intersect at more then one point
+                    && lineAngle() == other.lineAngle()
+                    && lineAngle() != 0) { //if lines intersect at more then one point
                 //will check the y axis
                 return true;
             } else if (Math.min(other.start().getX(), other.end.getX()) < Math.max(start.getX(), end.getX())
@@ -294,12 +309,20 @@ public class Line {
                 //Will not work on y axis if angle is zero
                 return true;
             } else if (Math.min(other.start().getY(), other.end.getY()) < Math.max(start.getY(), end.getY())
-                    && lineAngle() == other.lineAngle()) { //if lines intersect at more then one point
+                    && lineAngle() == other.lineAngle()
+                    && lineAngle() != 0) { //if lines intersect at more then one point
                 //will check the y axis
                 return true;
             }
         }
+        if (Math.abs(lineAngle()) < EPSILON && Math.abs(other.lineAngle()) < EPSILON) {
+            return ((Math.abs(start.getX() - end.getX()) < EPSILON && Math.abs(start.getX()
+                    - other.end.getX()) < EPSILON)
+                    || (Math.abs(start.getY() - end.getY()) < EPSILON && Math.abs(start.getY()
+                    - other.end.getY()) < EPSILON));
+        }
         return false;
+
     }
     /**
      * This method is used in order calculate potential or definite intersection point.
@@ -315,7 +338,8 @@ public class Line {
          double n2;
          n = start.getY() - lineAngle() * start.getX();
          n2 = other.start.getY() - other.lineAngle() * other.start.getX();
-         if (other.lineAngle() == 0 || lineAngle() == 0) {  //if angle is zero either y or x are always the same
+         if (Math.abs(other.lineAngle()) < EPSILON || (Math.abs(lineAngle()) < EPSILON)) {
+             //if angle is zero either y or x are always the same
             return potentialPointForZeroAngle(other, n, n2);
          }
          double intersectX;
@@ -340,19 +364,27 @@ public class Line {
         //compare all edges to see if they collide
         double intersectX;
         double intersectY;
-        if (other.start.getX() == other.end.getX()) {
+        if (Math.abs(other.start.getX() - other.end.getX()) < EPSILON) {
             intersectX = other.start.getX();
             intersectY = intersectX * lineAngle() + n;
             return new Point(intersectX, intersectY);
-        } else if (other.start.getY() == other.end.getY()) {
+        } else if (Math.abs(other.start.getY() - other.end.getY()) < EPSILON) {
             //same check for y
             intersectY = other.start.getY();
-            intersectX = (n - intersectY) / lineAngle();
+            if (lineAngle() != 0) {
+                intersectX = (intersectY - n) / lineAngle();
+            } else {
+                intersectX = start().getX();
+            }
             return new Point(intersectX, intersectY);
-        } else if (start.getY() == end.getY()) {
+        } else if (Math.abs(start.getY() - end.getY()) < EPSILON) {
             //same check for y
             intersectY = start.getY();
-            intersectX = (n2 - intersectY) / other.lineAngle();
+            if (other.lineAngle() != 0) {
+                intersectX = (intersectY - n2) / other.lineAngle();
+            } else {
+                intersectX = other.start.getX();
+            }
             return new Point(intersectX, intersectY);
         } else {
             intersectX = start.getX();
@@ -372,5 +404,28 @@ public class Line {
                 || (other.start.equals(end)
                 && other.end.equals(start));
         }
+
+    /**
+     *  checks If this line does not intersect with the rectangle, and will return null if not.
+     *  if so it will return the closest intersection point to the start of the line.
+     *
+     * @param rect is the rectangle that is being collided with.
+     * @return the closest point of collision to the start if the line.
+     *///
+        public Point closestIntersectionToStartOfLine(Rectangle rect) {
+            List<Point> listOfPoints = rect.intersectionPoints(this);
+            Point closestPoint = null;
+            for (int i = 0; i < listOfPoints.size(); i++) {
+                if (i == 0) {
+                    closestPoint = new Point(listOfPoints.get(i).getX(), listOfPoints.get(i).getY());
+                } else {
+                    if (listOfPoints.get(i).distance(this.start) < closestPoint.distance(this.start)) {
+                        closestPoint = new Point(listOfPoints.get(i).getX(), listOfPoints.get(i).getY());
+                    }
+                }
+            }
+            return closestPoint;
+        }
+
     }
 

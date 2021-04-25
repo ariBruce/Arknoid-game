@@ -9,6 +9,7 @@
  * </p>
  */
 public class Point {
+    private static final double EPSILON = 0.000001; //small numbers to be ignored
     private double x;  //x coordinate for point
     private double y;  //y coordinate for point
 
@@ -48,7 +49,7 @@ public class Point {
         double x2 = other.getX();
         double y2 = other.getY();
         //return true if both statements are correct
-        return x == x2 && y == y2;
+        return Math.abs(x - x2) < EPSILON && Math.abs(y - y2) < EPSILON;
     }
 
     /**
