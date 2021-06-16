@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Line {
     //Both points that the line is located in between
-    private static final double EPSILON = 0.000001; //small numbers to be ignored
+    private static final double EPSILON = 0.00001; //small numbers to be ignored
     private Point start;
     private Point end;
 

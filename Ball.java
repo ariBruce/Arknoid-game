@@ -1,6 +1,9 @@
 //Aryeh bruce 209313907
 import biuoop.DrawSurface;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Aryeh Bruce
  * date - 22.04.2021
@@ -11,7 +14,7 @@ import biuoop.DrawSurface;
  * </p>
  */
 
-public class Ball implements Sprite {
+public class Ball implements Sprite, HitNotifier {
 
     private Point center; //center point of the ball
     private int radius; //radius of the ball
@@ -19,18 +22,22 @@ public class Ball implements Sprite {
     private Velocity speedAndDirection; //speed and direction of the ball
     private GameEnvironment ballLimits; //the balls movement limits
     private  CollisionInfo previousCollisionInfo; // the balls last collision
+    private List<HitListener> hitListeners;
 
     /**
      * This method represents the first of two constructors and will receive the circle variables.
      *
      * @param center is the center point of the circle that is received.
      * @param radius is the radius of the circle that is received.
-     * @param color  the color of the circle that is received.
+     * @param color the color of the circle that is received.
+     * @param ballr the listener needed to remove the ball.
      */
-    public Ball(Point center, int radius, java.awt.Color color) {
+    public Ball(Point center, int radius, java.awt.Color color, BallRemover ballr) {
         this.center = center;
         this.radius = radius;
         this.color = color;
+        this.hitListeners = new ArrayList<HitListener>();
+        this.hitListeners.add(ballr);
     }
 
     /**
@@ -38,13 +45,16 @@ public class Ball implements Sprite {
      *
      * @param xOfPoint is the x coordinate of the center point of the circle that is received.
      * @param yOfPoint is the y coordinate of the center point of the circle that is received.
-     * @param radius   is the radius of the circle that is received.
-     * @param color    the color of the circle that is received.
+     * @param radius is the radius of the circle that is received.
+     * @param color the color of the circle that is received.
+     * @param ballr the listener needed to remove the ball.
      */
-    public Ball(double xOfPoint, double yOfPoint, int radius, java.awt.Color color) {
+    public Ball(double xOfPoint, double yOfPoint, int radius, java.awt.Color color, BallRemover ballr) {
         this.center = new Point(xOfPoint, yOfPoint);
         this.radius = radius;
         this.color = color;
+        this.hitListeners = new ArrayList<HitListener>();
+        this.hitListeners.add(ballr);
     }
 
     /**
@@ -128,6 +138,14 @@ public class Ball implements Sprite {
     public void setVelocity(double dx, double dy) {
         this.speedAndDirection = new Velocity(dx, dy);
     }
+    /**
+     * This method is the accessor to the listeners of the ball.
+     *
+     * @return the list of listeners.
+     */
+    public List<HitListener> getHitListeners() {
+        return hitListeners;
+    }
 
     /**
      * This method sets the limits of movement for the ball.
@@ -159,19 +177,36 @@ public class Ball implements Sprite {
                 speedAndDirection.applyToPoint(center).getX(), speedAndDirection.applyToPoint(center).getY());
         //check for collision object
         CollisionInfo aboutToHit = ballLimits.getClosestCollision(fullTrajectory);
-        if (aboutToHit != null) {
-            //avoid getting stuck if the middle lands exactly on a line
-            if (previousCollisionInfo != null
-                    && previousCollisionInfo.collisionPoint().equals(aboutToHit.collisionPoint())) {
-                center = getVelocity().applyToOneAbovePoint(center);
+        for (int i = 1; i < ballLimits.getObjectsOnScreen().size(); i++) {
+            Point leftmost = ballLimits.getObjectsOnScreen().get(i).getCollisionRectangle().getLeftLine().start();
+            Point rightMost = ballLimits.getObjectsOnScreen().get(i).getCollisionRectangle().getRightLine().start();
+            double iHeight = ballLimits.getObjectsOnScreen().get(i).getCollisionRectangle().getHeight();
+            //spit ball out on opposite upper corner if gets trapped by the paddle
+            if (leftmost.getX() < center.getX()
+                    && rightMost.getX() > center.getX()
+                    && rightMost.getY() < center.getY()
+                    && iHeight + rightMost.getY() > center.getY()) {
+                if (leftmost.getX() > 0) {
+                    center = new Point(50, 50);
+                } else {
+                    center = new Point(730, 50);
+                }
+            }
+        }
+            if (aboutToHit != null) {
+                //avoid getting stuck if the middle lands exactly on a line
+                if (previousCollisionInfo != null
+                        && previousCollisionInfo.collisionPoint().equals(aboutToHit.collisionPoint())) {
+                    center = getVelocity().applyToOneAbovePoint(center);
+                    return;
+                }
+                speedAndDirection = aboutToHit.collisionObject().hit(
+                        this, aboutToHit.collisionPoint(), speedAndDirection);
+                previousCollisionInfo = aboutToHit;
+                //in order not to bounce into another block
                 return;
             }
-            speedAndDirection = aboutToHit.collisionObject().hit(aboutToHit.collisionPoint(), speedAndDirection);
-            previousCollisionInfo = aboutToHit;
-            //in order not to bounce into another block
-            return;
-        }
-        center = getVelocity().applyToPoint(center);
+            center = getVelocity().applyToPoint(center);
     }
 
     /**
@@ -184,10 +219,47 @@ public class Ball implements Sprite {
     /**
      * This method will insert the ball into the game.
      *
-     * @param game the holder of the needed gui.
+     * @param gameLevel the holder of the needed gui.
      */
-    public void addToGame(Game game) {
-        game.addSprite(this);
+    public void addToGame(GameLevel gameLevel) {
+        gameLevel.addSprite(this);
+    }
+    /**
+     * This method will Add the hit listener as a listener to hit events.
+     *
+     * @param hl the listener to be added.
+     */
+    public void addHitListener(HitListener hl) {
+        hitListeners.add(hl);
+    }
+    /**
+     * This method will remove the hit listener from the list.
+     *
+     * @param hl the listener to be removed.
+     */
+    public void removeHitListener(HitListener hl) {
+        hitListeners.remove(hl);
+    }
+    /**
+     * This method will remove the spirit from the game.
+     *
+     * @param gameLevel the game to remove the spirit from.
+     */
+    public void removeFromGame(GameLevel gameLevel) {
+        gameLevel.removeSprite(this);
+    }
+    /**
+     * This method will notify all hit listeners that there has been a hit so they can act accordingly.
+     *
+     * @param beingHit the block that is being hit by the ball.
+     */
+    public void notifyHit(Block beingHit) {
+        // Make a copy of the hitListeners before iterating over them.
+        List<HitListener> listeners = new ArrayList<HitListener>(this.hitListeners);
+        // Notify all listeners about a hit event:
+        for (HitListener hl : listeners) {
+            hl.hitEvent(beingHit, this);
+        }
     }
 }
 

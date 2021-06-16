@@ -9,7 +9,7 @@
  * </p>
  */
 public class Point {
-    private static final double EPSILON = 0.000001; //small numbers to be ignored
+    private static final double EPSILON = 0.00001; //small numbers to be ignored
     private double x;  //x coordinate for point
     private double y;  //y coordinate for point
 

@@ -15,9 +15,10 @@ public interface Collidable {
     /**
      * This method returns the change of velocity to the item that collided with it.
      *
+     * @param hitter the ball colliding with the object.
      * @param collisionPoint point of collision with the block.
      * @param currentVelocity the velocity of the object that hit the block.
      * @return the new velocity based on impact.
      */
-    Velocity hit(Point collisionPoint, Velocity currentVelocity);
+    Velocity hit(Ball hitter, Point collisionPoint, Velocity currentVelocity);
 }

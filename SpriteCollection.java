@@ -16,6 +16,14 @@ public class SpriteCollection {
         this.spritesOnScreen = new ArrayList<Sprite>();
     }
     /**
+     * This method represents the getter of the sprite collection.
+     *
+     * @return the list of sprites.
+     */
+    public ArrayList<Sprite> getSpriteCollection() {
+        return spritesOnScreen;
+    }
+    /**
      * This method allows an addition of sprites to the sprite collection.
      *
      * @param s the sprite to be added.

@@ -1,6 +1,5 @@
 //Aryeh bruce 209313907
 import biuoop.DrawSurface;
-import biuoop.GUI;
 import biuoop.KeyboardSensor;
 import java.awt.Color;
 
@@ -14,22 +13,23 @@ import java.awt.Color;
  * </p>
  */
 public class Paddle implements Sprite, Collidable {
-    private static final int SCREEN_LIMITS_RIGHT = 770;
-    private static final int SCREEN_LIMITS_LEFT = 30;
-    private static final int MOVEMENT_PER_PRESS = 5;
+    private static final int SCREEN_LIMITS_RIGHT = 780;
+    private static final int SCREEN_LIMITS_LEFT = 20;
     private static final int PARTS_OF_THE_PADDLE = 5;
+    private int speed;
     private biuoop.KeyboardSensor keyboard;
     private Rectangle paddleShape;
 
     /**
      * This method represents the constructor for the paddle.
      *
-     * @param gui the game holder that contains the keyboard sensors.
+     * @param keyboard the holder that contains the keyboard sensors.
      * @param paddleShape the side's of the rectangle.
      */
-    public Paddle(GUI gui, Rectangle paddleShape) {
-        keyboard = gui.getKeyboardSensor();
+    public Paddle(Rectangle paddleShape, int speed, biuoop.KeyboardSensor keyboard) {
+        this.keyboard = keyboard;
         this.paddleShape = paddleShape;
+        this.speed = speed;
     }
     /**
      * This method represents the movement ability of the paddle to the left and will allow it to move properly.
@@ -37,7 +37,7 @@ public class Paddle implements Sprite, Collidable {
     public void moveLeft() {
         if (keyboard.isPressed(KeyboardSensor.LEFT_KEY)) {
             Point newUpperLeft = new Point(paddleShape.getUpperLeft().getX()
-                    - MOVEMENT_PER_PRESS, paddleShape.getUpperLeft().getY());
+                    - speed, paddleShape.getUpperLeft().getY());
             if (newUpperLeft.getX() >= SCREEN_LIMITS_LEFT) {
                 this.paddleShape = new Rectangle(newUpperLeft, paddleShape.getWidth(), paddleShape.getHeight());
             }
@@ -49,7 +49,7 @@ public class Paddle implements Sprite, Collidable {
     public void moveRight() {
         if (keyboard.isPressed(KeyboardSensor.RIGHT_KEY)) {
             Point newUpperLeft = new Point(paddleShape.getUpperLeft().getX()
-                    + MOVEMENT_PER_PRESS, paddleShape.getUpperLeft().getY());
+                    + speed, paddleShape.getUpperLeft().getY());
             if (newUpperLeft.getX() + paddleShape.getWidth() <= SCREEN_LIMITS_RIGHT) {
                 this.paddleShape = new Rectangle(newUpperLeft, paddleShape.getWidth(), paddleShape.getHeight());
             }
@@ -92,12 +92,15 @@ public class Paddle implements Sprite, Collidable {
      * sections it can be hit on and will change the angle of the ball accordingly when hit.
      * this method also lets the ball escape the paddle if it got trapped in it.
      *
+     *
+     * @param hitter the ball hitting the paddle.
      * @param collisionPoint the point of collision with the paddle.
      * @param currentVelocity the velocity the might need to be changed.
      * @return the new and correct velocity.
      */
-    public Velocity hit(Point collisionPoint, Velocity currentVelocity) {
+    public Velocity hit(Ball hitter, Point collisionPoint, Velocity currentVelocity) {
         Line pointIntoLine = new Line(collisionPoint, collisionPoint);
+        Velocity newCorrectVelocity = currentVelocity;
         //if the collision is not happening from the bottom of the top line
         if (paddleShape.getUpperLine().intersectionWith(pointIntoLine) != null
                 && currentVelocity.getdy() > 0) {
@@ -107,56 +110,56 @@ public class Paddle implements Sprite, Collidable {
                     <= collisionPoint.getX())
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE) * 3) + paddleShape.getUpperLine().start().getX()
                     >= collisionPoint.getX())) {
-                return new Velocity(currentVelocity.getdx(), currentVelocity.getdy() * (-1));
+                newCorrectVelocity = new Velocity(currentVelocity.getdx(), currentVelocity.getdy() * (-1));
             }
             if (paddleShape.getUpperLine().intersectionWith(pointIntoLine) != null
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE) * 3) + paddleShape.getUpperLine().start().getX()
                     <= collisionPoint.getX())
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE) * 4) + paddleShape.getUpperLine().start().getX()
                     >= collisionPoint.getX())) {
-                return Velocity.fromAngleAndSpeed(30, currentVelocity.getSpeed());
+                newCorrectVelocity = Velocity.fromAngleAndSpeed(30, currentVelocity.getSpeed());
             }
             if (paddleShape.getUpperLine().intersectionWith(pointIntoLine) != null
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE) * 4) + paddleShape.getUpperLine().start().getX()
                     <= collisionPoint.getX())
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE) * 5) + paddleShape.getUpperLine().start().getX()
                     >= collisionPoint.getX())) {
-                return Velocity.fromAngleAndSpeed(60, currentVelocity.getSpeed());
+                newCorrectVelocity = Velocity.fromAngleAndSpeed(60, currentVelocity.getSpeed());
             }
             if (paddleShape.getUpperLine().intersectionWith(pointIntoLine) != null
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE)) + paddleShape.getUpperLine().start().getX()
                     <= collisionPoint.getX())
                     && (((paddleShape.getWidth() / PARTS_OF_THE_PADDLE) * 2) + paddleShape.getUpperLine().start().getX()
                     >= collisionPoint.getX())) {
-                return Velocity.fromAngleAndSpeed(330, currentVelocity.getSpeed());
+                newCorrectVelocity = Velocity.fromAngleAndSpeed(330, currentVelocity.getSpeed());
             }
             if (paddleShape.getUpperLine().intersectionWith(pointIntoLine) != null
                     && (paddleShape.getUpperLine().start().getX() <= collisionPoint.getX())
                     && (paddleShape.getWidth() / PARTS_OF_THE_PADDLE)
                     + paddleShape.getUpperLine().start().getX() >= collisionPoint.getX()) {
-                return Velocity.fromAngleAndSpeed(300, currentVelocity.getSpeed());
+                newCorrectVelocity = Velocity.fromAngleAndSpeed(300, currentVelocity.getSpeed());
             }
         }
         if (paddleShape.getRightLine().intersectionWith(pointIntoLine) != null) {
-            return Velocity.fromAngleAndSpeed(60, currentVelocity.getSpeed());
+            newCorrectVelocity = Velocity.fromAngleAndSpeed(60, currentVelocity.getSpeed());
         }
         if (paddleShape.getLeftLine().intersectionWith(pointIntoLine) != null) {
-            return Velocity.fromAngleAndSpeed(300, currentVelocity.getSpeed());
+            newCorrectVelocity = Velocity.fromAngleAndSpeed(300, currentVelocity.getSpeed());
         }
         if (paddleShape.getLowerLine().intersectionWith(pointIntoLine) != null) {
-            return new Velocity(currentVelocity.getdx(), currentVelocity.getdy() * -1);
+            newCorrectVelocity = new Velocity(currentVelocity.getdx(), currentVelocity.getdy() * -1);
         }
         //other collisions with the paddle should not be counted
-        return currentVelocity;
+        return newCorrectVelocity;
     }
 
     /**
      * This method add the paddle to the game.
      *
-     * @param game the holder of the spirit and enviorment collection that the paddle needs to be added to.
+     * @param gameLevel the holder of the spirit and environment collection that the paddle needs to be added to.
      */
-    public void addToGame(Game game) {
-        game.addCollidable(this);
-        game.addSprite(this);
+    public void addToGame(GameLevel gameLevel) {
+        gameLevel.addCollidable(this);
+        gameLevel.addSprite(this);
     }
 }

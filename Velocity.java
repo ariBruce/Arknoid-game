@@ -85,7 +85,7 @@ public class Velocity {
             return new Point(dx + p.getX() + SMALL_CHANGE_OF_POINT, dy + p.getY() + SMALL_CHANGE_OF_POINT);
         } else if (dx >= 0 && dy <= 0) {
         return new Point(dx + p.getX() - SMALL_CHANGE_OF_POINT, dy + p.getY() + SMALL_CHANGE_OF_POINT);
-    } else {
+        } else {
             return new Point(dx + p.getX() + SMALL_CHANGE_OF_POINT, dy + p.getY() - SMALL_CHANGE_OF_POINT);
         }
     }
