@@ -1,4 +1,4 @@
-//Aryeh bruce 209313907
+//Aryeh bruce
 import biuoop.GUI;
 import biuoop.DrawSurface;
 
