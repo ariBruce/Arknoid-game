@@ -1,4 +1,4 @@
-//209313907 Aryeh Bruce
+// Aryeh Bruce
 
 import java.awt.Color;
 
