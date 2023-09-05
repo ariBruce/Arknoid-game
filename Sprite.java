@@ -1,4 +1,4 @@
-//209313907 Aryeh Bruce
+// Aryeh Bruce
 import biuoop.DrawSurface;
 /**
  * @author Aryeh Bruce
